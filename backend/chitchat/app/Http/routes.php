@@ -17,3 +17,5 @@ Route::get('/', function () {
 
 Route::post('/login','LoginController@loginfun');
 
+Route::post('api/contacts','Contacts@resolvecontactsfun');
+

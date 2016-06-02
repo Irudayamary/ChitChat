@@ -8,4 +8,6 @@
     <string name="login_activity_email">Email-ID</string>
     <string name="login_activity_password">Password</string>
     <string name="login_activity_login">LOGIN</string>
+    <string name="contact_activity_search">Phone Number</string>
+    <string name="contact_activity_search_button">SEARCH</string>
 </resources>
