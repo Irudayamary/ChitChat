@@ -1,29 +1,32 @@
 package com.usimedia.chitchat;
 
-import android.content.ContentProvider;
 import android.content.ContentResolver;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.util.ArraySet;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import com.usimedia.chitchat.adapter.ChatContactListAdapter;
+import com.usimedia.chitchat.model.ChatContacts;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -40,14 +43,12 @@ public class Contacts extends AppCompatActivity {
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     private static final OkHttpClient HTTP_CLIENT = new OkHttpClient();
 
-    private int numberOfContact;
-    private Set<String> contactNumbers;
     private ListView contactListView;
 
 
-    private class contactResolverTask extends AsyncTask<String, Void, List<String>> {
+    private class contactResolverTask extends AsyncTask<String, Void, List<ChatContacts>> {
         @Override
-        protected List<String> doInBackground(String... params) {
+        protected List<ChatContacts> doInBackground(String... params) {
             List<String> phoneNumbers = Arrays.asList(params);
 
             try {
@@ -65,13 +66,13 @@ public class Contacts extends AppCompatActivity {
         }
 
         @Override
-        protected void onPostExecute(List<String> names) {
+        protected void onPostExecute(List<ChatContacts> names) {
             super.onPostExecute(names);
             setValuesToUiListView(names);
         }
     }
 
-    private List<String> getContacts(List<String> phoneNumbers) throws JSONException, IOException {
+    private List<ChatContacts> getContacts(List<String> phoneNumbers) throws JSONException, IOException {
 
         JSONArray jsonNumbers = new JSONArray(phoneNumbers);
         JSONObject jsonRequest = new JSONObject();
@@ -85,14 +86,22 @@ public class Contacts extends AppCompatActivity {
 
         Log.d("Contacts" , "Number of contacts received from backend = " + jsonContacts.length());
 
-        final List<String> contactList = new ArrayList<>();
+        final List<ChatContacts> contactList = new ArrayList<>();
 
-        String currentContactName;
-
+        ChatContacts currentContact;
+        final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
         for (int i=0; i<jsonContacts.length(); i++){
-            currentContactName = jsonContacts.getJSONObject(i).getString("name");
-            contactList.add(currentContactName);
-            Log.d("Contacts", "Current contact name being parsed = " + currentContactName);
+            currentContact = new ChatContacts();
+            currentContact.setName(jsonContacts.getJSONObject(i).getString("name"));
+            currentContact.setStatus(jsonContacts.getJSONObject(i).getString("status"));
+            try {
+                currentContact.setLastSeen(dateFormat.parse(jsonContacts.getJSONObject(i).getString("last_seen")));
+            } catch (ParseException e) {
+                e.printStackTrace();
+                currentContact.setLastSeen(new Date());
+            }
+            contactList.add(currentContact);
+            Log.d("Contacts", "Current contact name being parsed = " + currentContact.getName());
         }
 
         return contactList;
@@ -162,7 +171,7 @@ public class Contacts extends AppCompatActivity {
         new contactResolverTask().execute(distinctNumbers.toArray(numbersBuffer));
     }
 
-    private void setValuesToUiListView(List<String> elements) {
+    private void setValuesToUiListView(List<ChatContacts> elements) {
 
         Log.d("Contact", "Number of contacts found from backend = "+elements.size());
 
@@ -171,14 +180,18 @@ public class Contacts extends AppCompatActivity {
             return;
         }
 
-        final ArrayAdapter<String> contactListAdapter = new ArrayAdapter<>(
+
+
+
+
+        ChatContacts[] contacts = new ChatContacts[elements.size()];
+
+        final ArrayAdapter<ChatContacts> chatContactsArrayAdapter = new ChatContactListAdapter(
                 Contacts.this,
-                android.R.layout.simple_list_item_1,
-                android.R.id.text1,
-                elements
+                elements.toArray(contacts)
         );
 
-        contactListView.setAdapter(contactListAdapter);
+        contactListView.setAdapter(chatContactsArrayAdapter);
     }
 
 

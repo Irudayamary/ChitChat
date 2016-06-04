@@ -11,8 +11,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.usimedia.chitchat.Model.LoginModel;
-import com.usimedia.chitchat.Model.Result;
+import com.usimedia.chitchat.model.LoginModel;
+import com.usimedia.chitchat.model.Result;
 
 import org.json.JSONException;
 import org.json.JSONObject;

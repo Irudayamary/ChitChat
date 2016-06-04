@@ -1,4 +1,4 @@
-package com.usimedia.chitchat.Model;
+package com.usimedia.chitchat.model;
 
 /**
  * Created by USI IT on 5/31/2016.
